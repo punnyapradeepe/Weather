@@ -121,10 +121,11 @@ export default function Home() {
           </View>
         )}
       </View>
-      <View style={styles.btn1}></View>
-      <View style={styles.btn}></View>
-      <View style={styles.bottomContainer}>
       
+      <View style={styles.bottomContainer}>
+      <View style={styles.btn}>
+        <Image source={require('./../../assets/Vector (11).png')}/>
+      </View>
       </View>
     </LinearGradient>
   );
@@ -214,42 +215,27 @@ const styles = StyleSheet.create({
     },
     bottomContainer: {
         width: '100%',
-        height: 160,
+        height: '35%',
         marginTop: 'auto',
         backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
-        borderTopLeftRadius: 170,
-        borderTopRightRadius: 170,
-        borderBottomLeftRadius: 0, // Optional: Adjust if you need different radius
-        borderBottomRightRadius: 0, // Optional: Adjust if you need different radius
-        overflow: 'hidden', // Ensures the curve is clipped correctly
-        position: 'absolute', // Optional: Adjust if needed
-        bottom: 0,
-        alignItems: 'center', // Center the pink button horizontally
-        justifyContent: 'center', // Center the pink button vertically (if needed)
-      },
-      btn: {
+        borderRadius: 200,
+        position: 'absolute', 
+        bottom: -160,
+        zIndex: 0,
+    },
+    btn: {
         width: 70,
         height: 70,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        backgroundColor: '#123597',
         position: 'absolute',
-        top: 580, // Move the button above the white container
-        left:140,
+        top: -20, 
+        left:145,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 90, // Full circle
-        zIndex: 1, // Ensure the pink button is on top
-      },
-      btn1: {
-        width: 80,
-        height: 80,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        position: 'absolute',
-        top: 580, // Move the button above the white container
-        left:135,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 40, // Full circle
-        zIndex: 1, // Ensure the pink button is on top
-      },
-  });
+        borderRadius: 90,
+        zIndex: 1, 
+    }
+    
+});
+
   
