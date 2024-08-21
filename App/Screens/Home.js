@@ -94,8 +94,8 @@ export default function Home() {
         {data && (
           <View style={styles.infoContainer}>
             <Text style={styles.cityText}>{data.name}</Text>
-            <Text style={styles.text}>{data.country}</Text>
-            <Text style={styles.text}>{data.timezone}</Text>
+            {/* <Text style={styles.text}>{data.country}</Text> */}
+            <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
           </View>
         )}
         {weather && (
@@ -110,14 +110,18 @@ export default function Home() {
                 style={styles.image}
               />
               <View style={styles.weatherDetails}>
-                <Text style={styles.temperatureText}>{weather.temperature}°</Text>
-                <Text style={styles.summaryText}>{weather.summary}</Text>
+                <Text style={styles.temperatureText}>{weather.temperature}° </Text>
+             
               </View>
+       
+
             </View>
-            <Text style={styles.text}>Feels Like: {weather.feels_like}°</Text>
+            <Text style={styles.summaryText}>{weather.summary} - H:{weather.humidity}%  L: {weather.feels_like}°</Text>
+
+            {/* <Text style={styles.text}>Feels Like: {weather.feels_like}°</Text>
             <Text style={styles.text}>Wind Speed: {weather.wind.speed} km/h</Text>
             <Text style={styles.text}>Precipitation: {weather.precipitation.total} mm</Text>
-            <Text style={styles.text}>Humidity: {weather.humidity}%</Text>
+            <Text style={styles.text}>Humidity: {weather.humidity}%</Text> */}
           </View>
         )}
       </View>
@@ -174,13 +178,14 @@ const styles = StyleSheet.create({
     },
     infoContainer: {
       marginTop: 20,
-      alignItems: 'center',
+      alignItems: 'flex-start', // Align items to the left
+      width: '100%', // Ensure the container takes the full width
     },
     cityText: {
-      fontSize: 30,
+      fontSize: 50,
       fontWeight: 'bold',
       color: '#fff',
-      marginRight: 'auto',
+      alignSelf:'center'
     },
     weatherContainer: {
       marginTop: 20,
@@ -190,11 +195,11 @@ const styles = StyleSheet.create({
       alignItems: 'center',
     },
     weatherDetails: {
-      marginLeft: 20,
+      marginLeft: 30,
     },
     image: {
-      width: 200,
-      height: 200,
+      width: 100,
+      height: 100,
       resizeMode: 'contain',
     },
     temperatureText: {
@@ -206,36 +211,46 @@ const styles = StyleSheet.create({
     summaryText: {
       fontSize: 18,
       color: '#fff',
+      marginLeft: 50,
+      margintop:20
     },
     text: {
       fontSize: 18,
       color: '#fff',
-      marginBottom: 5,
-      marginRight: 'auto',
+      marginBottom: 20,
+      marginLeft: 123, // Add left margin
+    
     },
+    text1: {
+        fontSize: 18,
+        color: '#fff',
+        marginTop: 20,
+        marginLeft: 10, // Add left margin
+      
+      },
     bottomContainer: {
-        width: '100%',
-        height: '35%',
-        marginTop: 'auto',
-        backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
-        borderRadius: 200,
-        position: 'absolute', 
-        bottom: -160,
-        zIndex: 0,
+      width: '100%',
+      height: '35%',
+      marginTop: 'auto',
+      backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
+      borderRadius: 200,
+      position: 'absolute',
+      bottom: -160,
+      zIndex: 0,
     },
     btn: {
-        width: 70,
-        height: 70,
-        backgroundColor: '#123597',
-        position: 'absolute',
-        top: -20, 
-        left:145,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 90,
-        zIndex: 1, 
-    }
-    
-});
+      width: 70,
+      height: 70,
+      backgroundColor: '#123597',
+      position: 'absolute',
+      top: -20,
+      left: 145,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 90,
+      zIndex: 1,
+    },
+  });
+  
 
   
