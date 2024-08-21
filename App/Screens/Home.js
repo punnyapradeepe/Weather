@@ -198,15 +198,16 @@ const styles = StyleSheet.create({
       marginLeft: 30,
     },
     image: {
-      width: 100,
+      width: 90,
       height: 100,
       resizeMode: 'contain',
+      marginLeft:20
     },
     temperatureText: {
-      fontSize: 50,
+      fontSize: 90,
       color: '#fff',
       marginBottom: 5,
-      fontWeight: 'bold',
+     
     },
     summaryText: {
       fontSize: 18,
