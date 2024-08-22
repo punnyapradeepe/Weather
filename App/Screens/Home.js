@@ -10,9 +10,12 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
-  const [bottomPosition, setBottomPosition] = useState(-560); // State for bottom position
+  const [bottomPosition, setBottomPosition] = useState(-650); // State for bottom position
 
-  
+  const handleButtonPress = () => {
+    setBottomPosition(bottomPosition === -650 ? -250 : -650);
+  };
+
   const handleFetchData = async () => {
     const url = `https://ai-weather-by-meteosource.p.rapidapi.com/find_places?text=${encodeURIComponent(city)}&language=en`;
     const options = {
@@ -96,7 +99,7 @@ export default function Home() {
           </TouchableOpacity>
         </View>
         {error && <Text style={styles.error}>{error}</Text>}
-        {data && (
+        {data && bottomPosition === -650 && (
           <View style={styles.infoContainer}>
             <Text style={styles.cityText}>{data.name}</Text>
             <View style={{flexDirection:'row',alignSelf:'center'}}>
@@ -105,7 +108,7 @@ export default function Home() {
             </View>
           </View>
         )}
-        {weather && (
+        {weather && bottomPosition === -650 && (
           <View style={styles.weatherContainer}>
             <View style={styles.weatherInfo}>
               <Image 
@@ -114,7 +117,6 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
-
                          null}
                 style={styles.image}
               />
@@ -142,11 +144,36 @@ export default function Home() {
             />
           </View>
         )}
+        {bottomPosition === -250 && (
+         <View style={styles.infoContainer1}>
+          <View>
+         <Text style={styles.cityText}>{data.name}</Text>
+         <View style={{flexDirection:'row',alignSelf:'center'}}>
+           <Image source={require('./../../assets/location 1.png')} />
+           <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
+         </View>
+         </View>
+         <View style={styles.weatherInfo}>
+              <Image 
+                source={weather.summary.toLowerCase() === 'overcast' ? require('./../../assets/cloudy.png') : 
+                         weather.summary.toLowerCase() === 'partly clear' ? require('./../../assets/sun.png') : 
+                         weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
+                         null}
+                style={styles.image1}
+              />
+              <View style={styles.weatherDetails}>
+                <Text style={styles.temperatureText1}>{weather.temperature}° </Text>
+              </View>
+            </View>
+       </View>
+        )}
       </View>
-      <View style={styles.bottomContainer}>
-      <View style={styles.btn}>
+      <View style={[styles.bottomContainer, { bottom: bottomPosition }]}>
+        <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
           <Image source={require('./../../assets/Vector (11).png')} />
-        </View>
+        </TouchableOpacity>
       </View>
     </LinearGradient>
   );
@@ -199,6 +226,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start', // Align items to the left
     width: '100%', // Ensure the container takes the full width
   },
+    infoContainer1: {
+  flexDirection:'row',
+  marginRight:'auto',
+  marginTop:20
+  },
   cityText: {
     fontSize: 40,
     fontWeight: 'bold',
@@ -220,6 +252,17 @@ const styles = StyleSheet.create({
     height: 100,
     resizeMode: 'contain',
     marginLeft:20
+  },
+  image1: {
+    width: 90,
+    height: 90,
+    resizeMode: 'contain',
+   
+  },
+  temperatureText1: {
+    fontSize: 30,
+    color: '#fff',
+    marginBottom: 5,
   },
   temperatureText: {
     fontSize: 90,
@@ -253,12 +296,12 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     width: '100%',
-    height: 700,
+    height: 800,
     marginTop: 'auto',
     backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
     borderRadius: 100,
     position: 'absolute',
-    bottom: -560, // Half of the container height to pull it down
+    bottom: -650, // Half of the container height to pull it down
     alignItems: 'center',
   },
   btn: {
