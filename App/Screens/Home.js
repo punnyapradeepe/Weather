@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Dimensions, TextInput, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, TextInput, TouchableOpacity, Image, FlatList } from 'react-native';
 import React, { useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,7 +10,9 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
+  const [bottomPosition, setBottomPosition] = useState(-560); // State for bottom position
 
+  
   const handleFetchData = async () => {
     const url = `https://ai-weather-by-meteosource.p.rapidapi.com/find_places?text=${encodeURIComponent(city)}&language=en`;
     const options = {
@@ -71,6 +73,9 @@ export default function Home() {
     }
   };
 
+  // Dummy data for the FlatList
+  const flatListData = Array.from({ length: 12 }, (_, i) => ({ id: i.toString(), text: `Item ${i + 1}` }));
+
   return (
     <LinearGradient
       colors={['#97ABFF', '#123597']}
@@ -94,8 +99,10 @@ export default function Home() {
         {data && (
           <View style={styles.infoContainer}>
             <Text style={styles.cityText}>{data.name}</Text>
-            {/* <Text style={styles.text}>{data.country}</Text> */}
-            <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
+            <View style={{flexDirection:'row',alignSelf:'center'}}>
+              <Image source={require('./../../assets/location 1.png')} />
+              <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
+            </View>
           </View>
         )}
         {weather && (
@@ -105,153 +112,182 @@ export default function Home() {
                 source={weather.summary.toLowerCase() === 'overcast' ? require('./../../assets/cloudy.png') : 
                          weather.summary.toLowerCase() === 'partly clear' ? require('./../../assets/sun.png') : 
                          weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
 
                          null}
                 style={styles.image}
               />
               <View style={styles.weatherDetails}>
                 <Text style={styles.temperatureText}>{weather.temperature}° </Text>
-             
               </View>
-       
-
             </View>
-            <Text style={styles.summaryText}>{weather.summary} - H:{weather.humidity}%  L: {weather.feels_like}°</Text>
+            <Text style={styles.summaryText}>{weather.summary}  -  H:{weather.humidity}%   L:{weather.feels_like}°</Text>
+            <View style={styles.buttonContainer}>
+              <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Daily</Text></View>
+              <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Weekly</Text></View>
+            </View>
 
-            {/* <Text style={styles.text}>Feels Like: {weather.feels_like}°</Text>
-            <Text style={styles.text}>Wind Speed: {weather.wind.speed} km/h</Text>
-            <Text style={styles.text}>Precipitation: {weather.precipitation.total} mm</Text>
-            <Text style={styles.text}>Humidity: {weather.humidity}%</Text> */}
+            {/* FlatList for 12 items */}
+            <FlatList
+              data={flatListData}
+              renderItem={({ item }) => (
+                <View style={styles.flatListItem}>
+                  <Text style={styles.flatListItemText}>{item.text}</Text>
+                </View>
+              )}
+              keyExtractor={(item) => item.id}
+              horizontal
+              contentContainerStyle={styles.flatListContainer}
+            />
           </View>
         )}
       </View>
-      
       <View style={styles.bottomContainer}>
       <View style={styles.btn}>
-        <Image source={require('./../../assets/Vector (11).png')}/>
-      </View>
+          <Image source={require('./../../assets/Vector (11).png')} />
+        </View>
       </View>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      width: width,
-      height: height,
-    },
-    content: {
-      flex: 1,
-      justifyContent: 'flex-start',
-      alignItems: 'center',
-      padding: 20,
-    },
-    inputContainer: {
-      flexDirection: 'row',
-      width: '100%',
-      paddingTop: 40,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    input: {
-      height: 40,
-      borderColor: 'gray',
-      borderWidth: 1,
-      width: '80%',
-      marginRight: 10,
-      paddingHorizontal: 10,
-      borderRadius: 5,
-    },
-    button: {
-      backgroundColor: '#123597',
-      padding: 10,
-      borderRadius: 5,
-    },
-    buttonText: {
-      color: '#fff',
-      fontSize: 16,
-    },
-    error: {
-      color: 'red',
-      marginTop: 10,
-    },
-    infoContainer: {
-      marginTop: 20,
-      alignItems: 'flex-start', // Align items to the left
-      width: '100%', // Ensure the container takes the full width
-    },
-    cityText: {
-      fontSize: 50,
-      fontWeight: 'bold',
-      color: '#fff',
-      alignSelf:'center'
-    },
-    weatherContainer: {
-      marginTop: 20,
-    },
-    weatherInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    weatherDetails: {
-      marginLeft: 30,
-    },
-    image: {
-      width: 90,
-      height: 100,
-      resizeMode: 'contain',
-      marginLeft:20
-    },
-    temperatureText: {
-      fontSize: 90,
-      color: '#fff',
-      marginBottom: 5,
-     
-    },
-    summaryText: {
-      fontSize: 18,
-      color: '#fff',
-      marginLeft: 50,
-      margintop:20
-    },
-    text: {
-      fontSize: 18,
-      color: '#fff',
-      marginBottom: 20,
-      marginLeft: 123, // Add left margin
-    
-    },
-    text1: {
-        fontSize: 18,
-        color: '#fff',
-        marginTop: 20,
-        marginLeft: 10, // Add left margin
-      
-      },
-    bottomContainer: {
-      width: '100%',
-      height: '35%',
-      marginTop: 'auto',
-      backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
-      borderRadius: 200,
-      position: 'absolute',
-      bottom: -160,
-      zIndex: 0,
-    },
-    btn: {
-      width: 70,
-      height: 70,
-      backgroundColor: '#123597',
-      position: 'absolute',
-      top: -20,
-      left: 145,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 90,
-      zIndex: 1,
-    },
-  });
+  container: {
+    flex: 1,
+    width: width,
+    height: height,
   
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    padding: 20,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingTop: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    width: '80%',
+    marginRight: 10,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  button: {
+    backgroundColor: '#123597',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  error: {
+    color: 'red',
+    marginTop: 10,
+  },
+  infoContainer: {
+    marginTop: 10,
+    alignItems: 'flex-start', // Align items to the left
+    width: '100%', // Ensure the container takes the full width
+  },
+  cityText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#fff',
+    alignSelf:'center'
+  },
+  weatherContainer: {
+    marginTop: 10,
+  },
+  weatherInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  weatherDetails: {
+    marginLeft: 30,
+  },
+  image: {
+    width: 90,
+    height: 100,
+    resizeMode: 'contain',
+    marginLeft:20
+  },
+  temperatureText: {
+    fontSize: 90,
+    color: '#fff',
+    marginBottom: 5,
+  },
+  summaryText: {
+    fontSize: 20,
+    color: '#fff',
+    alignSelf:'center',
+    marginTop:10,
+    marginBottom:20,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 20,
+    alignSelf: 'center',
+  },
+  buttonView: {
+    width: 130,
+    height: 40,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonTextCentered: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  bottomContainer: {
+    width: '100%',
+    height: 700,
+    marginTop: 'auto',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
+    borderRadius: 100,
+    position: 'absolute',
+    bottom: -560, // Half of the container height to pull it down
+    alignItems: 'center',
+  },
+  btn: {
+    width: 70,
+    height: 70,
+    backgroundColor: '#123597',
+    position: 'absolute',
+    top: 10,
+    left: 145,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 90,
+    zIndex: 1,
+  },
+  flatListContainer: {
+    paddingHorizontal: 10, // Padding around the FlatList items
+    borderRadius:30
+  },
+  flatListItem: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
+    height:140,
+    width:90,
+    borderRadius: 10,
+    marginRight: 10, // Margin between items
 
-  
+  },
+  flatListItemText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+});
+
