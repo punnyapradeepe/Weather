@@ -51,30 +51,63 @@ export default function Home() {
   };
 
   const fetchWeatherData = async (lat, lon) => {
-    const url = `https://ai-weather-by-meteosource.p.rapidapi.com/current?lat=${lat}&lon=${lon}&timezone=auto&language=en&units=auto`;
+    const weatherUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/current?lat=${lat}&lon=${lon}&timezone=auto&language=en&units=auto`;
+    const astroUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/astro?lat=${lat}&lon=${lon}&timezone=auto`;
+
     const options = {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
-        'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com'
-      }
+        method: 'GET',
+        headers: {
+            'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
+            'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com'
+        }
     };
 
     try {
-      const response = await fetch(url, options);
-      const result = await response.json();
-      if (response.ok) {
-        setWeather(result.current);
-        setError(null);
-      } else {
-        setError(result.message || 'Error fetching weather data');
-        setWeather(null);
-      }
+        // Fetch weather data
+        const weatherResponse = await fetch(weatherUrl, options);
+        const weatherResult = await weatherResponse.json();
+        if (!weatherResponse.ok) {
+            throw new Error(weatherResult.message || 'Error fetching weather data');
+        }
+
+        // Fetch astronomical data
+        const astroResponse = await fetch(astroUrl, options);
+        const astroResult = await astroResponse.json();
+        if (!astroResponse.ok) {
+            throw new Error(astroResult.message || 'Error fetching astronomical data');
+        }
+
+        // Log the full astroResult for debugging
+        console.log('Astro Result:', astroResult);
+
+        // Correctly access the sun data
+        const sunData = astroResult.astro.data[0].sun;
+
+        // Ensure that rise and set data exists
+        if (sunData?.rise && sunData?.set) {
+            // Convert and format the sunrise and sunset times
+            const sunrise = new Date(sunData.rise).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            const sunset = new Date(sunData.set).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+            // Combine results
+            setWeather({
+                ...weatherResult.current,
+                sunrise,
+                sunset
+            });
+            setError(null);
+        } else {
+            throw new Error('Sun data is unavailable');
+        }
     } catch (error) {
-      setError('An error occurred: ' + error.message);
-      setWeather(null);
+        console.error('Error occurred:', error.message);
+        setError('An error occurred: ' + error.message);
+        setWeather(null);
     }
-  };
+};
+
+
+
 
   // Dummy data for the FlatList
   const flatListData = Array.from({ length: 12 }, (_, i) => ({ id: i.toString(), text: `Item ${i + 1}` }));
@@ -127,6 +160,9 @@ export default function Home() {
               </View>
             </View>
             <Text style={styles.summaryText}>{weather.summary}  -  H:{weather.humidity}%   L:{weather.feels_like}°</Text>
+            <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
+<Text style={styles.sunText}>Sunset: {weather.sunset}</Text>
+
             <View style={styles.buttonContainer}>
               <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Daily</Text></View>
               <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Weekly</Text></View>
@@ -178,8 +214,9 @@ export default function Home() {
           <Image source={require('./../../assets/Vector (11).png')} />
         </TouchableOpacity>
         <View style={styles.sunrise}>
-
-        </View>
+        <Text style={styles.sunText}>Sunrise: </Text>
+        <Text style={styles.sunText}>Sunset:</Text>
+      </View>
         <View style={styles.sunrise2}>
 
 </View>
@@ -232,8 +269,8 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     marginTop: 10,
-    alignItems: 'flex-start', // Align items to the left
-    width: '100%', // Ensure the container takes the full width
+    alignItems: 'flex-start', 
+    width: '100%', 
   },
     infoContainer1: {
   flexDirection:'row',
