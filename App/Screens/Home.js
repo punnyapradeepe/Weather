@@ -160,8 +160,8 @@ export default function Home() {
               </View>
             </View>
             <Text style={styles.summaryText}>{weather.summary}  -  H:{weather.humidity}%   L:{weather.feels_like}°</Text>
-            <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
-<Text style={styles.sunText}>Sunset: {weather.sunset}</Text>
+            {/* <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
+<Text style={styles.sunText}>Sunset: {weather.sunset}</Text> */}
 
             <View style={styles.buttonContainer}>
               <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Daily</Text></View>
@@ -210,17 +210,33 @@ export default function Home() {
         )}
       </View>
       <View style={[styles.bottomContainer, { bottom: bottomPosition }]}>
-        <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
-          <Image source={require('./../../assets/Vector (11).png')} />
-        </TouchableOpacity>
-        <View style={styles.sunrise}>
-        <Text style={styles.sunText}>Sunrise: </Text>
-        <Text style={styles.sunText}>Sunset:</Text>
-      </View>
-        <View style={styles.sunrise2}>
+  <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
+    <Image source={require('./../../assets/Vector (11).png')} />
+  </TouchableOpacity>
 
+  {/* Conditionally render the sunrise and sunset times */}
+  {weather?.sunrise && weather?.sunset && (
+    <View style={styles.sunrise}>
+      <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
+      <Text style={styles.sunText}>Sunset: {weather.sunset}</Text>
+    </View>
+  )}
+  
+  {weather?.sunrise && weather?.sunset && (
+  <View style={styles.sunrise2}>
+   <Text>Summary</Text>
+   <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
+   <Text style={styles.sunText}>Sunset: {weather.sunset}</Text>
+   <Text style={styles.sunText}>temp{weather.temperature}</Text>
+   <Text style={styles.sunText}>feels_like {weather.feels_like}</Text>
+   <Text style={styles.sunText}>wind speed{weather.wind.speed}</Text>
+   <Text style={styles.sunText}>humidity {weather.humidity}</Text>
+   <Text style={styles.sunText}>uv_index {weather.uv_index}</Text>
+   <Text style={styles.sunText}>wind speed{weather.wind.speed}</Text>
+   <Text style={styles.sunText}>humidity {weather.humidity}</Text>
+  </View>
+   )}
 </View>
-      </View>
     </LinearGradient>
   );
 }
@@ -382,9 +398,9 @@ const styles = StyleSheet.create({
   },
   sunrise:{
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal:150,
-    paddingVertical:50,
-    marginTop:100,
+    paddingHorizontal:100,
+    paddingVertical:40,
+    marginTop:90,
     borderRadius:20
 
   },
