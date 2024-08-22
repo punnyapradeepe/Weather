@@ -210,31 +210,66 @@ export default function Home() {
         )}
       </View>
       <View style={[styles.bottomContainer, { bottom: bottomPosition }]}>
-  <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
-    <Image source={require('./../../assets/Vector (11).png')} />
-  </TouchableOpacity>
+      <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
+        <Image
+          source={
+            bottomPosition === '-65%'
+              ? require('./../../assets/arrow.png')
+              : require('./../../assets/arrow-up.png')
+          }
+         // Adjust dimensions as needed
+        />
+      </TouchableOpacity>
 
   {/* Conditionally render the sunrise and sunset times */}
   {weather?.sunrise && weather?.sunset && (
     <View style={styles.sunrise}>
-      <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
-      <Text style={styles.sunText}>Sunset: {weather.sunset}</Text>
+      <Text style={styles.sunText2}>Sunrise: {weather.sunrise}</Text>
+      <Text style={styles.sunText2}>Sunset : {weather.sunset}</Text>
     </View>
   )}
   
   {weather?.sunrise && weather?.sunset && (
-  <View style={styles.sunrise2}>
-   <Text>Summary</Text>
-   <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
-   <Text style={styles.sunText}>Sunset: {weather.sunset}</Text>
-   <Text style={styles.sunText}>temp{weather.temperature}</Text>
-   <Text style={styles.sunText}>feels_like {weather.feels_like}</Text>
-   <Text style={styles.sunText}>wind speed{weather.wind.speed}</Text>
-   <Text style={styles.sunText}>humidity {weather.humidity}</Text>
-   <Text style={styles.sunText}>uv_index {weather.uv_index}</Text>
-   <Text style={styles.sunText}>wind speed{weather.wind.speed}</Text>
-   <Text style={styles.sunText}>humidity {weather.humidity}</Text>
-  </View>
+ <View style={styles.sunrise2}>
+ <Text style={styles.summaryText}>Summary</Text>
+
+ <View style={styles.infoContainer}>
+   <View style={styles.infoItem}>
+     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Text style={styles.sunText}>Temperature</Text>
+     <Text style={styles.sunText2}>{weather.temperature} °</Text>
+     <View style={styles.infoItem1}>
+     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Text style={styles.sunText}>Sunrise</Text>
+     <Text style={styles.sunText2}>{weather.sunrise}</Text>
+   </View>
+   </View>
+
+   <View style={styles.infoItem}>
+     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Text style={styles.sunText}>Wind</Text>
+     <Text style={styles.sunText2}>{weather.wind.speed}km/h</Text>
+     <View style={styles.infoItem1}>
+     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Text style={styles.sunText}>Sunset</Text>
+     <Text style={styles.sunText2}>{weather.sunset}</Text>
+   </View>
+   </View>
+
+   <View style={styles.infoItem}>
+     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Text style={styles.sunText}>Cloud</Text>
+     <Text style={styles.sunText2}>{weather.cloud_cover}%</Text>
+     <View style={styles.infoItem1}>
+     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Text style={styles.sunText}>Humidity</Text>
+     <Text style={styles.sunText2}>{weather.humidity}°</Text>
+   </View>
+   </View>
+ </View>
+
+ 
+</View>
    )}
 </View>
     </LinearGradient>
@@ -358,12 +393,54 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  sunrise2: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Light blue background similar to the image
+    borderRadius: 20,            // Rounded corners
+    padding: 20,                 // Padding inside the container
+    margin: 10,                  // Margin around the container
+    width: '90%',                // Width to make it more centered
+    alignSelf: 'center',         // Center align the container
+  },
+  summaryText: {
+    fontSize: 18,                // Larger font size for the summary title
+    fontWeight: 'bold',          // Bold text
+    color: '#FFFFFF',            // White color text
+  },
+  infoContainer: {
+    flexDirection: 'row',        // Arrange the items in a row
+    justifyContent: 'space-between', // Space between items
+    marginTop: 20,               // Margin at the top to separate rows
+  },
+  infoItem: {
+    alignItems: 'center',        // Center align the items vertically
+  },
+  infoItem1: {
+    alignItems: 'center', 
+    marginTop:30       // Center align the items vertically
+  },
+  icon: {
+    width: 24,                   // Width of the icons
+    height: 24,                  // Height of the icons
+    marginBottom: 5,             // Space between icon and text
+  },
+  sunText: {
+    fontSize: 16,                // Smaller font for labels
+    color: '#FFFFFF', 
+   
+  },
+  sunText2: {
+    fontSize: 18,                // Smaller font for labels
+    color: '#FFFFFF', 
+    fontWeight:'bold'
+   
+  },
   bottomContainer: {
     width: '100%',
     height: 800,
     marginTop: 'auto',
     backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
-    borderRadius: 100,
+     borderTopLeftRadius:100,
+    borderTopRightRadius:100,
     position: 'absolute',
     bottom: '-65%', // Half of the container height to pull it down
     alignItems: 'center',
@@ -373,13 +450,15 @@ const styles = StyleSheet.create({
     height: 70,
     backgroundColor: '#123597',
     position: 'absolute',
-   marginLeft:'50%',
-   top:10,
+    left: '50%',
+    top: -20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 90,
+    borderRadius: 35, // Half of the width/height
     zIndex: 1,
+    transform: [{ translateX: -35 }], // Center horizontally
   },
+  
   flatListContainer: {
     paddingHorizontal: 10, // Padding around the FlatList items
     borderRadius:30
@@ -404,12 +483,6 @@ const styles = StyleSheet.create({
     borderRadius:20
 
   },
-  sunrise2:{
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal:150,
-    paddingVertical:100,
-    marginTop:50,
-    borderRadius:20
-  }
+
 });
 
