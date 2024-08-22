@@ -10,10 +10,10 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
-  const [bottomPosition, setBottomPosition] = useState(-650); // State for bottom position
+  const [bottomPosition, setBottomPosition] = useState('-65%'); // State for bottom position
 
   const handleButtonPress = () => {
-    setBottomPosition(bottomPosition === -650 ? -250 : -650);
+    setBottomPosition(bottomPosition === '-65%'? '-20%' : '-65%');
   };
 
   const handleFetchData = async () => {
@@ -21,7 +21,7 @@ export default function Home() {
     const options = {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': '03d158fe43mshe05f120bb876a55p1ab78ajsna4fe1f643e8a',
+        'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
         'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com'
       }
     };
@@ -55,7 +55,7 @@ export default function Home() {
     const options = {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': '03d158fe43mshe05f120bb876a55p1ab78ajsna4fe1f643e8a',
+        'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
         'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com'
       }
     };
@@ -99,7 +99,7 @@ export default function Home() {
           </TouchableOpacity>
         </View>
         {error && <Text style={styles.error}>{error}</Text>}
-        {data && bottomPosition === -650 && (
+        {data && bottomPosition === '-65%' && (
           <View style={styles.infoContainer}>
             <Text style={styles.cityText}>{data.name}</Text>
             <View style={{flexDirection:'row',alignSelf:'center'}}>
@@ -108,7 +108,7 @@ export default function Home() {
             </View>
           </View>
         )}
-        {weather && bottomPosition === -650 && (
+        {weather && bottomPosition === '-65%' && (
           <View style={styles.weatherContainer}>
             <View style={styles.weatherInfo}>
               <Image 
@@ -117,6 +117,8 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
+
                          null}
                 style={styles.image}
               />
@@ -144,7 +146,7 @@ export default function Home() {
             />
           </View>
         )}
-        {bottomPosition === -250 && (
+        {bottomPosition === '-20%' && (
          <View style={styles.infoContainer1}>
           <View>
          <Text style={styles.cityText}>{data.name}</Text>
@@ -159,6 +161,7 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'partly clear' ? require('./../../assets/sun.png') : 
                          weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
                          null}
                 style={styles.image1}
@@ -174,6 +177,12 @@ export default function Home() {
         <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
           <Image source={require('./../../assets/Vector (11).png')} />
         </TouchableOpacity>
+        <View style={styles.sunrise}>
+
+        </View>
+        <View style={styles.sunrise2}>
+
+</View>
       </View>
     </LinearGradient>
   );
@@ -248,7 +257,7 @@ const styles = StyleSheet.create({
     marginLeft: 30,
   },
   image: {
-    width: 90,
+    width: 100,
     height: 100,
     resizeMode: 'contain',
     marginLeft:20
@@ -257,6 +266,8 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     resizeMode: 'contain',
+    marginRight:10,
+    marginLeft:20
    
   },
   temperatureText1: {
@@ -301,7 +312,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
     borderRadius: 100,
     position: 'absolute',
-    bottom: -650, // Half of the container height to pull it down
+    bottom: '-65%', // Half of the container height to pull it down
     alignItems: 'center',
   },
   btn: {
@@ -309,8 +320,8 @@ const styles = StyleSheet.create({
     height: 70,
     backgroundColor: '#123597',
     position: 'absolute',
-    top: 10,
-    left: 145,
+   marginLeft:'50%',
+   top:10,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 90,
@@ -332,5 +343,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  sunrise:{
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal:150,
+    paddingVertical:50,
+    marginTop:100,
+    borderRadius:20
+
+  },
+  sunrise2:{
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal:150,
+    paddingVertical:100,
+    marginTop:50,
+    borderRadius:20
+  }
 });
 
