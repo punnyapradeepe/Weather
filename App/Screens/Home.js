@@ -2,6 +2,10 @@ import { StyleSheet, Text, View, Dimensions, TextInput, TouchableOpacity, Image,
 import React, { useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Feather from '@expo/vector-icons/Feather';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import Entypo from '@expo/vector-icons/Entypo';
 
 const { width, height } = Dimensions.get('window');
 
@@ -151,6 +155,7 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
 
                          null}
                 style={styles.image}
@@ -198,6 +203,7 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
                          null}
                 style={styles.image1}
@@ -224,8 +230,15 @@ export default function Home() {
   {/* Conditionally render the sunrise and sunset times */}
   {weather?.sunrise && weather?.sunset && (
     <View style={styles.sunrise}>
-      <Text style={styles.sunText2}>Sunrise: {weather.sunrise}</Text>
-      <Text style={styles.sunText2}>Sunset : {weather.sunset}</Text>
+      <Image source={require('./../../assets/sun-fog.png')}/>
+      <View style={{marginLeft:20,marginRight:20}}>      
+      <Text style={styles.sunText2}>Sunrise</Text>
+      <Text style={styles.sunText2}> {weather.sunrise}</Text>
+      </View>
+      <View style={{marginLeft:20,marginRight:20}}>
+      <Text style={styles.sunText2}>Sunset</Text>
+      <Text style={styles.sunText2}>{weather.sunset}</Text>
+      </View>
     </View>
   )}
   
@@ -235,30 +248,30 @@ export default function Home() {
 
  <View style={styles.infoContainer}>
    <View style={styles.infoItem}>
-     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+   <FontAwesome5 name="temperature-high" size={30} color="white" />
      <Text style={styles.sunText}>Temperature</Text>
      <Text style={styles.sunText2}>{weather.temperature} °</Text>
      <View style={styles.infoItem1}>
-     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Feather name="sunrise" size={30} color="white" />
      <Text style={styles.sunText}>Sunrise</Text>
      <Text style={styles.sunText2}>{weather.sunrise}</Text>
    </View>
    </View>
 
    <View style={styles.infoItem}>
-     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
+     <Feather name="wind" size={30} color="white" />
      <Text style={styles.sunText}>Wind</Text>
      <Text style={styles.sunText2}>{weather.wind.speed}km/h</Text>
      <View style={styles.infoItem1}>
-     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
-     <Text style={styles.sunText}>Sunset</Text>
+     <MaterialCommunityIcons name="weather-sunset" size={30} color="white" />
+          <Text style={styles.sunText}>Sunset</Text>
      <Text style={styles.sunText2}>{weather.sunset}</Text>
    </View>
    </View>
 
    <View style={styles.infoItem}>
-     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
-     <Text style={styles.sunText}>Cloud</Text>
+<Entypo name="cloud" size={30} color="white" />    
+ <Text style={styles.sunText}>Cloud</Text>
      <Text style={styles.sunText2}>{weather.cloud_cover}%</Text>
      <View style={styles.infoItem1}>
      <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
@@ -319,7 +332,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   infoContainer: {
-    marginTop: 10,
+    marginTop: 20,
     alignItems: 'flex-start', 
     width: '100%', 
   },
@@ -335,14 +348,16 @@ const styles = StyleSheet.create({
     alignSelf:'center'
   },
   weatherContainer: {
-    marginTop: 10,
+    marginTop: 20,
   },
   weatherInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+  
   },
   weatherDetails: {
     marginLeft: 30,
+
   },
   image: {
     width: 100,
@@ -373,12 +388,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     alignSelf:'center',
     marginTop:10,
-    marginBottom:20,
+    marginBottom:30,
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 20,
+    marginBottom: 30,
     alignSelf: 'center',
   },
   buttonView: {
@@ -388,6 +403,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 30,
   },
   buttonTextCentered: {
     color: '#fff',
@@ -419,9 +436,10 @@ const styles = StyleSheet.create({
     marginTop:30       // Center align the items vertically
   },
   icon: {
-    width: 24,                   // Width of the icons
-    height: 24,                  // Height of the icons
-    marginBottom: 5,             // Space between icon and text
+    width: 30,                   // Width of the icons
+    height: 30,                  // Height of the icons
+    marginBottom: 5,  
+    borderRadius:20           // Space between icon and text
   },
   sunText: {
     fontSize: 16,                // Smaller font for labels
@@ -476,8 +494,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   sunrise:{
+    flexDirection:'row',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal:100,
+    paddingHorizontal:20,
     paddingVertical:40,
     marginTop:90,
     borderRadius:20
