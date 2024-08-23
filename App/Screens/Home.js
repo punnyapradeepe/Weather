@@ -72,24 +72,32 @@ export default function Home() {
     };
 
     try {
+      // Fetch current weather
       const weatherResponse = await fetch(currentWeatherUrl, options);
       const weatherResult = await weatherResponse.json();
       if (!weatherResponse.ok) {
         throw new Error(weatherResult.message || 'Error fetching weather data');
       }
 
+      // Fetch hourly weather data
       const hourlyResponse = await fetch(hourlyWeatherUrl, options);
       const hourlyResult = await hourlyResponse.json();
       if (!hourlyResponse.ok) {
         throw new Error(hourlyResult.message || 'Error fetching hourly weather data');
       }
 
-      // Filter the hourly data to include only the hours from 12:00 AM to 12:00 PM
+      // Get current date and time
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000); // 24 hours later
+
+      // Filter the hourly data to include only the hours from 12:00 AM to 12:00 AM the next day
       const filteredHourlyData = hourlyResult.hourly.data.filter((item) => {
-        const hour = new Date(item.date).getHours();
-        return hour >= 0 && hour <= 12;
+        const itemDate = new Date(item.date);
+        return itemDate >= startOfToday && itemDate < endOfToday;
       });
 
+      // Fetch astronomical data
       const astroResponse = await fetch(astroUrl, options);
       const astroResult = await astroResponse.json();
       if (!astroResponse.ok) {
@@ -121,6 +129,7 @@ export default function Home() {
       setHourlyData([]); // Clear hourly data on error
     }
   };
+
 
 
   return (
@@ -182,15 +191,15 @@ export default function Home() {
               <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Weekly</Text></View>
             </View>
 
-            {/* FlatList for 12 items */}
+       
           <FlatList
   data={hourlyData}
   renderItem={({ item }) => (
     <View style={styles.flatListItem}>
       <Text style={styles.flatListItemText}>
         {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', hour12: true })}</Text>
-        <Image source={require('./../../assets/cloudy.png')} style={{height:70,width:70,alignContent:'center',marginTop:10}}/>
-        <Text> {item.temperature}°
+        <Image source={require('./../../assets/cloudy.png')} style={{height:70,width:70,alignContent:'center'}}/>
+        <Text style={styles.flatListItemText1}> {item.temperature}°
       </Text>
     </View>
   )}
@@ -369,6 +378,7 @@ const styles = StyleSheet.create({
   weatherInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf:'center'
   
   },
   weatherDetails: {
@@ -398,7 +408,7 @@ const styles = StyleSheet.create({
     fontSize: 90,
     color: '#fff',
     marginBottom: 5,
-   
+   marginLeft:50
   },
   summaryText: {
     fontSize: 20,
@@ -406,7 +416,6 @@ const styles = StyleSheet.create({
     alignSelf:'center',
     marginTop:5,
     marginBottom:5,
- 
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -491,7 +500,7 @@ const styles = StyleSheet.create({
   },
   
   flatListContainer: {
-     // Padding around the FlatList items
+ 
     borderRadius:50
   },
   flatListItem: {
@@ -499,13 +508,20 @@ const styles = StyleSheet.create({
     height:145,
     width:90,
     borderRadius: 50,
-    marginRight: 10, // Margin between items
+    marginRight: 10, 
 
   },
   flatListItemText: {
     color: '#fff',
     fontSize: 16,
-    alignItems:'center'
+    marginLeft:20,
+    marginTop:30
+  },
+  flatListItemText1: {
+    color: '#fff',
+    fontSize: 16,
+    marginLeft:20,
+    marginTop:-10
   },
   sunrise:{
     flexDirection:'row',
