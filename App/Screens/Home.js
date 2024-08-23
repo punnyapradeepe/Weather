@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Dimensions, TextInput, TouchableOpacity, Image, FlatList } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Feather from '@expo/vector-icons/Feather';
@@ -10,14 +10,18 @@ import Entypo from '@expo/vector-icons/Entypo';
 const { width, height } = Dimensions.get('window');
 
 export default function Home() {
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState('Aluva');  // Initial city set to 'Aluva'
   const [data, setData] = useState(null);
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
-  const [bottomPosition, setBottomPosition] = useState('-65%'); // State for bottom position
+  const [bottomPosition, setBottomPosition] = useState('-80%');
+
+  useEffect(() => {
+    handleFetchData();  // Automatically fetch data for Aluva when the component mounts
+  }, []);
 
   const handleButtonPress = () => {
-    setBottomPosition(bottomPosition === '-65%'? '-20%' : '-65%');
+    setBottomPosition(bottomPosition === '-80%' ? '-35%' : '-80%');
   };
 
   const handleFetchData = async () => {
@@ -26,23 +30,21 @@ export default function Home() {
       method: 'GET',
       headers: {
         'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
-        'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com'
-      }
+        'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com',
+      },
     };
 
     try {
       const response = await fetch(url, options);
       const result = await response.json();
       if (response.ok) {
-        const newData = result[0]; // Assuming the first result is what you want
+        const newData = result[0];
         setData(newData);
         setError(null);
-        
-        // Store latitude and longitude in AsyncStorage
+
         await AsyncStorage.setItem('latitude', newData.lat);
         await AsyncStorage.setItem('longitude', newData.lon);
 
-        // Fetch weather data using the new latitude and longitude
         fetchWeatherData(newData.lat, newData.lon);
       } else {
         setError(result.message || 'Error fetching data');
@@ -59,59 +61,97 @@ export default function Home() {
     const astroUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/astro?lat=${lat}&lon=${lon}&timezone=auto`;
 
     const options = {
-        method: 'GET',
-        headers: {
-            'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
-            'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com'
-        }
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
+        'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com',
+      },
     };
 
     try {
-        // Fetch weather data
-        const weatherResponse = await fetch(weatherUrl, options);
-        const weatherResult = await weatherResponse.json();
-        if (!weatherResponse.ok) {
-            throw new Error(weatherResult.message || 'Error fetching weather data');
-        }
+      const weatherResponse = await fetch(weatherUrl, options);
+      const weatherResult = await weatherResponse.json();
+      if (!weatherResponse.ok) {
+        throw new Error(weatherResult.message || 'Error fetching weather data');
+      }
 
-        // Fetch astronomical data
-        const astroResponse = await fetch(astroUrl, options);
-        const astroResult = await astroResponse.json();
-        if (!astroResponse.ok) {
-            throw new Error(astroResult.message || 'Error fetching astronomical data');
-        }
+      const astroResponse = await fetch(astroUrl, options);
+      const astroResult = await astroResponse.json();
+      if (!astroResponse.ok) {
+        throw new Error(astroResult.message || 'Error fetching astronomical data');
+      }
 
-        // Log the full astroResult for debugging
-        console.log('Astro Result:', astroResult);
+      const sunData = astroResult.astro.data[0].sun;
+      const moonData = astroResult.astro.data[0].moon;
 
-        // Correctly access the sun data
-        const sunData = astroResult.astro.data[0].sun;
+      if (sunData?.rise && sunData?.set && moonData?.phase) {
+        const sunrise = new Date(sunData.rise).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        const sunset = new Date(sunData.set).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
-        // Ensure that rise and set data exists
-        if (sunData?.rise && sunData?.set) {
-            // Convert and format the sunrise and sunset times
-            const sunrise = new Date(sunData.rise).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-            const sunset = new Date(sunData.set).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-
-            // Combine results
-            setWeather({
-                ...weatherResult.current,
-                sunrise,
-                sunset
-            });
-            setError(null);
-        } else {
-            throw new Error('Sun data is unavailable');
-        }
+        setWeather({
+          ...weatherResult.current,
+          sunrise,
+          sunset,
+          moonPhase: moonData.phase,
+        });
+        setError(null);
+      } else {
+        throw new Error('Sun or Moon data is unavailable');
+      }
     } catch (error) {
-        console.error('Error occurred:', error.message);
-        setError('An error occurred: ' + error.message);
-        setWeather(null);
+      console.error('Error occurred:', error.message);
+      setError('An error occurred: ' + error.message);
+      setWeather(null);
     }
-};
+  };
 
 
-
+  async function fetchHourlyWeather() {
+    try {
+      // Retrieve latitude and longitude from AsyncStorage
+      const latitude = await AsyncStorage.getItem('latitude');
+      const longitude = await AsyncStorage.getItem('longitude');
+  
+      // Construct the API URL using the retrieved latitude and longitude
+      const url = `https://ai-weather-by-meteosource.p.rapidapi.com/hourly?lat=${latitude}&lon=${longitude}&timezone=auto&language=en&units=auto`;
+      const options = {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
+          'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com',
+        },
+      };
+  
+      const response = await fetch(url, options);
+      const result = await response.json();
+  
+      // Check if the result contains hourly data
+      if (result.hourly && result.hourly.data) {
+        const hourlyData = result.hourly.data;
+  
+        // Filter the data to get time and temperature between 12:00 AM to 12:00 PM
+        const filteredData = hourlyData.filter((item) => {
+          const date = new Date(item.date);
+          const hours = date.getHours();
+          return hours >= 0 && hours <= 12; // 12:00 AM to 12:00 PM
+        });
+  
+        // Extract time and temperature
+        const timeAndTemperature = filteredData.map((item) => {
+          return {
+            time: new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+            temperature: item.temperature,
+          };
+        });
+  
+        console.log(timeAndTemperature); // Log the time and temperature data
+      } else {
+        console.error('No hourly data found');
+      }
+    } catch (error) {
+      console.error('Error fetching weather data:', error.message);
+    }
+  }
 
   // Dummy data for the FlatList
   const flatListData = Array.from({ length: 12 }, (_, i) => ({ id: i.toString(), text: `Item ${i + 1}` }));
@@ -136,16 +176,17 @@ export default function Home() {
           </TouchableOpacity>
         </View>
         {error && <Text style={styles.error}>{error}</Text>}
-        {data && bottomPosition === '-65%' && (
+        {data && bottomPosition === '-80%' && (
           <View style={styles.infoContainer}>
+            <View style={{alignSelf:'center'}}>
             <Text style={styles.cityText}>{data.name}</Text>
-            <View style={{flexDirection:'row',alignSelf:'center'}}>
-              <Image source={require('./../../assets/location 1.png')} />
-              <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
-            </View>
+            <View style={{flexDirection:'row'}}>
+            <Entypo name="location-pin" size={24} color="white" />
+            <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
+            </View></View>
           </View>
         )}
-        {weather && bottomPosition === '-65%' && (
+        {weather && bottomPosition === '-80%' && (
           <View style={styles.weatherContainer}>
             <View style={styles.weatherInfo}>
               <Image 
@@ -156,6 +197,7 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'clear' ? require('./../../assets/rain.png') : 
 
                          null}
                 style={styles.image}
@@ -187,13 +229,13 @@ export default function Home() {
             />
           </View>
         )}
-        {bottomPosition === '-20%' && (
+        {bottomPosition === '-35%' && (
          <View style={styles.infoContainer1}>
-          <View>
+          <View style={{alignSelf:'center'}}>
          <Text style={styles.cityText}>{data.name}</Text>
-         <View style={{flexDirection:'row',alignSelf:'center'}}>
-           <Image source={require('./../../assets/location 1.png')} />
-           <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
+         <View style={{flexDirection:'row'}}>
+         <Entypo name="location-pin" size={24} color="white" />
+           <Text style={{color:'white'}}>Current Location</Text>
          </View>
          </View>
          <View style={styles.weatherInfo}>
@@ -205,6 +247,9 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'clear' ? require('./../../assets/rain.png') : 
+
+                       
                          null}
                 style={styles.image1}
               />
@@ -219,7 +264,7 @@ export default function Home() {
       <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
         <Image
           source={
-            bottomPosition === '-65%'
+            bottomPosition === '-70%'
               ? require('./../../assets/arrow.png')
               : require('./../../assets/arrow-up.png')
           }
@@ -274,9 +319,9 @@ export default function Home() {
  <Text style={styles.sunText}>Cloud</Text>
      <Text style={styles.sunText2}>{weather.cloud_cover}%</Text>
      <View style={styles.infoItem1}>
-     <Image source={require('./../../assets/arrow.png')} style={styles.icon} />
-     <Text style={styles.sunText}>Humidity</Text>
-     <Text style={styles.sunText2}>{weather.humidity}°</Text>
+     <FontAwesome5 name="moon" size={30} color="white" />
+     <Text style={styles.sunText}>Moon</Text>
+     <Text style={styles.sunText2}>{weather.moonPhase}°</Text>
    </View>
    </View>
  </View>
@@ -292,25 +337,23 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: width,
-    height: height,
   
   },
   content: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    padding: 20,
+    padding: 10,
   },
   inputContainer: {
     flexDirection: 'row',
     width: '100%',
-    paddingTop: 40,
+    paddingTop: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
   input: {
-    height: 40,
+    paddingVertical:5,
     borderColor: 'gray',
     borderWidth: 1,
     width: '80%',
@@ -320,8 +363,9 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#123597',
-    padding: 10,
+    paddingVertical:8,
     borderRadius: 5,
+    paddingHorizontal: 10,
   },
   buttonText: {
     color: '#fff',
@@ -332,23 +376,23 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   infoContainer: {
-    marginTop: 20,
+    marginTop: 10,
     alignItems: 'flex-start', 
     width: '100%', 
   },
     infoContainer1: {
   flexDirection:'row',
   marginRight:'auto',
-  marginTop:20
+  marginTop:10
   },
   cityText: {
     fontSize: 40,
     fontWeight: 'bold',
     color: '#fff',
-    alignSelf:'center'
+    marginLeft:10
   },
   weatherContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   weatherInfo: {
     flexDirection: 'row',
@@ -356,7 +400,6 @@ const styles = StyleSheet.create({
   
   },
   weatherDetails: {
-    marginLeft: 30,
 
   },
   image: {
@@ -377,23 +420,26 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: '#fff',
     marginBottom: 5,
+     marginRight:'auto'
   },
   temperatureText: {
     fontSize: 90,
     color: '#fff',
     marginBottom: 5,
+   
   },
   summaryText: {
     fontSize: 20,
     color: '#fff',
     alignSelf:'center',
-    marginTop:10,
-    marginBottom:30,
+    marginTop:5,
+    marginBottom:5,
+ 
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 30,
+    marginBottom: 20,
     alignSelf: 'center',
   },
   buttonView: {
@@ -404,7 +450,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
-    marginTop: 30,
+    marginTop: 10,
   },
   buttonTextCentered: {
     color: '#fff',
@@ -417,11 +463,6 @@ const styles = StyleSheet.create({
     margin: 10,                  // Margin around the container
     width: '90%',                // Width to make it more centered
     alignSelf: 'center',         // Center align the container
-  },
-  summaryText: {
-    fontSize: 18,                // Larger font size for the summary title
-    fontWeight: 'bold',          // Bold text
-    color: '#FFFFFF',            // White color text
   },
   infoContainer: {
     flexDirection: 'row',        // Arrange the items in a row
@@ -479,7 +520,7 @@ const styles = StyleSheet.create({
   
   flatListContainer: {
     paddingHorizontal: 10, // Padding around the FlatList items
-    borderRadius:30
+    borderRadius:50
   },
   flatListItem: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
@@ -497,8 +538,8 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal:20,
-    paddingVertical:40,
-    marginTop:90,
+    paddingVertical:30,
+    marginTop:60,
     borderRadius:20
 
   },
