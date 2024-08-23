@@ -106,9 +106,14 @@ export default function Home() {
         return itemDate >= startOfToday && itemDate < endOfToday;
       });
 
-      // Extract weekly data
-      const weeklyData = weeklyResult.daily.data;
-      setWeeklyData(weeklyData); // Set weekly data
+      // Format the weekly data dates
+      const formattedWeeklyData = weeklyResult.daily.data.map((item) => ({
+        ...item,
+        date: formatDate(item.date),
+      }));
+
+      // Set formatted weekly data
+      setWeeklyData(formattedWeeklyData); // Set weekly data
 
       // Fetch astronomical data
       const astroResponse = await fetch(astroUrl, options);
@@ -143,6 +148,19 @@ export default function Home() {
       setWeeklyData([]); // Clear weekly data on error
     }
   };
+
+  const formatDate = (dateString) => {
+    // Create a new Date object from the date string
+    const date = new Date(dateString);
+    
+    // Get day and month from the Date object
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  
+    // Return formatted date
+    return `${day}/${month}`;
+  };
+  
 
   const handleDailyButtonPress = () => {
     setViewMode('hourly');
@@ -187,7 +205,7 @@ export default function Home() {
           <View style={styles.weatherContainer}>
             <View style={styles.weatherInfo}>
               <Image 
-                source={weather.summary.toLowerCase() === 'overcast' ? require('./../../assets/cloudy.png') : 
+                source={weather.summary.toLowerCase() === 'overcast' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'partly clear' ? require('./../../assets/sun.png') : 
                          weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
@@ -195,6 +213,9 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'clear' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'mostly cloudy' ? require('./../../assets/rain.png') : 
+
+                        
                          null}
                 style={styles.image}
               />
@@ -238,13 +259,13 @@ export default function Home() {
                    
                     <Text style={styles.flatListItemText2}> {item.day}
                     </Text>
-                    <Text style={styles.flatListItemText1}> {item.weather}
+                    <Text style={styles.flatListItemText3}> {item.weather}
                     </Text>
-                    <Text style={styles.flatListItemText1}> {item.temperature}° 
+                    <Text style={styles.flatListItemText3}> {item.temperature}° 
                     </Text>
                   </View>
                 )}
-                keyExtractor={(item) => item.time}  // Ensure unique key for each item
+                keyExtractor={(item) => item.time}  
                 horizontal
                 contentContainerStyle={styles.flatListContainer}
               />
@@ -262,7 +283,7 @@ export default function Home() {
             </View>
             <View style={styles.weatherInfo}>
               <Image 
-                source={weather.summary.toLowerCase() === 'overcast' ? require('./../../assets/cloudy.png') : 
+                source={weather.summary.toLowerCase() === 'overcast' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'partly clear' ? require('./../../assets/sun.png') : 
                          weather.summary.toLowerCase() === 'rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'rain shower' ? require('./../../assets/rain.png') : 
@@ -270,6 +291,8 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'clear' ? require('./../../assets/rain.png') : 
+                         weather.summary.toLowerCase() === 'mostly cloudy' ? require('./../../assets/rain.png') : 
+
                          null}
                 style={styles.image1}
               />
@@ -354,7 +377,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  
+
   },
   content: {
     flex: 1,
@@ -418,7 +441,8 @@ const styles = StyleSheet.create({
   
   },
   weatherDetails: {
-
+alignItems: 'center',
+    alignSelf:'center'
   },
   image: {
     width: 100,
@@ -444,7 +468,7 @@ const styles = StyleSheet.create({
     fontSize: 90,
     color: '#fff',
     marginBottom: 5,
-   marginLeft:50
+   marginLeft:10
   },
   summaryText: {
     fontSize: 20,
@@ -563,6 +587,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     marginTop:30
+  },
+  flatListItemText3: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop:10
   },
   sunrise:{
     flexDirection:'row',
