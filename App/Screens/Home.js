@@ -15,6 +15,8 @@ export default function Home() {
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
   const [bottomPosition, setBottomPosition] = useState('-80%');
+  const [hourlyData, setHourlyData] = useState([]); // State for hourly data
+
 
   useEffect(() => {
     handleFetchData();  // Automatically fetch data for Aluva when the component mounts
@@ -57,7 +59,8 @@ export default function Home() {
   };
 
   const fetchWeatherData = async (lat, lon) => {
-    const weatherUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/current?lat=${lat}&lon=${lon}&timezone=auto&language=en&units=auto`;
+    const currentWeatherUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/current?lat=${lat}&lon=${lon}&timezone=auto&language=en&units=auto`;
+    const hourlyWeatherUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/hourly?lat=${lat}&lon=${lon}&timezone=auto&language=en&units=auto`;
     const astroUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/astro?lat=${lat}&lon=${lon}&timezone=auto`;
 
     const options = {
@@ -69,11 +72,23 @@ export default function Home() {
     };
 
     try {
-      const weatherResponse = await fetch(weatherUrl, options);
+      const weatherResponse = await fetch(currentWeatherUrl, options);
       const weatherResult = await weatherResponse.json();
       if (!weatherResponse.ok) {
         throw new Error(weatherResult.message || 'Error fetching weather data');
       }
+
+      const hourlyResponse = await fetch(hourlyWeatherUrl, options);
+      const hourlyResult = await hourlyResponse.json();
+      if (!hourlyResponse.ok) {
+        throw new Error(hourlyResult.message || 'Error fetching hourly weather data');
+      }
+
+      // Filter the hourly data to include only the hours from 12:00 AM to 12:00 PM
+      const filteredHourlyData = hourlyResult.hourly.data.filter((item) => {
+        const hour = new Date(item.date).getHours();
+        return hour >= 0 && hour <= 12;
+      });
 
       const astroResponse = await fetch(astroUrl, options);
       const astroResult = await astroResponse.json();
@@ -94,6 +109,7 @@ export default function Home() {
           sunset,
           moonPhase: moonData.phase,
         });
+        setHourlyData(filteredHourlyData); // Set the hourly data
         setError(null);
       } else {
         throw new Error('Sun or Moon data is unavailable');
@@ -102,59 +118,10 @@ export default function Home() {
       console.error('Error occurred:', error.message);
       setError('An error occurred: ' + error.message);
       setWeather(null);
+      setHourlyData([]); // Clear hourly data on error
     }
   };
 
-
-  async function fetchHourlyWeather() {
-    try {
-      // Retrieve latitude and longitude from AsyncStorage
-      const latitude = await AsyncStorage.getItem('latitude');
-      const longitude = await AsyncStorage.getItem('longitude');
-  
-      // Construct the API URL using the retrieved latitude and longitude
-      const url = `https://ai-weather-by-meteosource.p.rapidapi.com/hourly?lat=${latitude}&lon=${longitude}&timezone=auto&language=en&units=auto`;
-      const options = {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
-          'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com',
-        },
-      };
-  
-      const response = await fetch(url, options);
-      const result = await response.json();
-  
-      // Check if the result contains hourly data
-      if (result.hourly && result.hourly.data) {
-        const hourlyData = result.hourly.data;
-  
-        // Filter the data to get time and temperature between 12:00 AM to 12:00 PM
-        const filteredData = hourlyData.filter((item) => {
-          const date = new Date(item.date);
-          const hours = date.getHours();
-          return hours >= 0 && hours <= 12; // 12:00 AM to 12:00 PM
-        });
-  
-        // Extract time and temperature
-        const timeAndTemperature = filteredData.map((item) => {
-          return {
-            time: new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-            temperature: item.temperature,
-          };
-        });
-  
-        console.log(timeAndTemperature); // Log the time and temperature data
-      } else {
-        console.error('No hourly data found');
-      }
-    } catch (error) {
-      console.error('Error fetching weather data:', error.message);
-    }
-  }
-
-  // Dummy data for the FlatList
-  const flatListData = Array.from({ length: 12 }, (_, i) => ({ id: i.toString(), text: `Item ${i + 1}` }));
 
   return (
     <LinearGradient
@@ -216,17 +183,22 @@ export default function Home() {
             </View>
 
             {/* FlatList for 12 items */}
-            <FlatList
-              data={flatListData}
-              renderItem={({ item }) => (
-                <View style={styles.flatListItem}>
-                  <Text style={styles.flatListItemText}>{item.text}</Text>
-                </View>
-              )}
-              keyExtractor={(item) => item.id}
-              horizontal
-              contentContainerStyle={styles.flatListContainer}
-            />
+          <FlatList
+  data={hourlyData}
+  renderItem={({ item }) => (
+    <View style={styles.flatListItem}>
+      <Text style={styles.flatListItemText}>
+        {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', hour12: true })}</Text>
+        <Image source={require('./../../assets/cloudy.png')} style={{height:70,width:70,alignContent:'center',marginTop:10}}/>
+        <Text> {item.temperature}°
+      </Text>
+    </View>
+  )}
+  keyExtractor={(item) => item.date}  // Ensure unique key for each item
+  horizontal
+  contentContainerStyle={styles.flatListContainer}
+/>
+
           </View>
         )}
         {bottomPosition === '-35%' && (
@@ -264,7 +236,7 @@ export default function Home() {
       <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
         <Image
           source={
-            bottomPosition === '-70%'
+            bottomPosition === '-80%'
               ? require('./../../assets/arrow.png')
               : require('./../../assets/arrow-up.png')
           }
@@ -439,7 +411,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 20,
+    marginBottom: 5,
     alignSelf: 'center',
   },
   buttonView: {
@@ -501,7 +473,7 @@ const styles = StyleSheet.create({
      borderTopLeftRadius:100,
     borderTopRightRadius:100,
     position: 'absolute',
-    bottom: '-65%', // Half of the container height to pull it down
+    bottom: '-80%', // Half of the container height to pull it down
     alignItems: 'center',
   },
   btn: {
@@ -519,20 +491,21 @@ const styles = StyleSheet.create({
   },
   
   flatListContainer: {
-    paddingHorizontal: 10, // Padding around the FlatList items
+     // Padding around the FlatList items
     borderRadius:50
   },
   flatListItem: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)', // Transparent white with 30% opacity
-    height:140,
+    height:145,
     width:90,
-    borderRadius: 10,
+    borderRadius: 50,
     marginRight: 10, // Margin between items
 
   },
   flatListItemText: {
     color: '#fff',
     fontSize: 16,
+    alignItems:'center'
   },
   sunrise:{
     flexDirection:'row',
@@ -541,7 +514,6 @@ const styles = StyleSheet.create({
     paddingVertical:30,
     marginTop:60,
     borderRadius:20
-
   },
 
 });
