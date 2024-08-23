@@ -16,7 +16,8 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [bottomPosition, setBottomPosition] = useState('-80%');
   const [hourlyData, setHourlyData] = useState([]); // State for hourly data
-
+  const [weeklyData, setWeeklyData] = useState([]); // State for weekly data
+  const [viewMode, setViewMode] = useState('hourly'); // To toggle between daily and weekly view
 
   useEffect(() => {
     handleFetchData();  // Automatically fetch data for Aluva when the component mounts
@@ -61,6 +62,7 @@ export default function Home() {
   const fetchWeatherData = async (lat, lon) => {
     const currentWeatherUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/current?lat=${lat}&lon=${lon}&timezone=auto&language=en&units=auto`;
     const hourlyWeatherUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/hourly?lat=${lat}&lon=${lon}&timezone=auto&language=en&units=auto`;
+    const weeklyWeatherUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/daily?lat=${lat}&lon=${lon}&language=en&units=auto`;
     const astroUrl = `https://ai-weather-by-meteosource.p.rapidapi.com/astro?lat=${lat}&lon=${lon}&timezone=auto`;
 
     const options = {
@@ -86,6 +88,13 @@ export default function Home() {
         throw new Error(hourlyResult.message || 'Error fetching hourly weather data');
       }
 
+      // Fetch weekly weather data
+      const weeklyResponse = await fetch(weeklyWeatherUrl, options);
+      const weeklyResult = await weeklyResponse.json();
+      if (!weeklyResponse.ok) {
+        throw new Error(weeklyResult.message || 'Error fetching weekly weather data');
+      }
+
       // Get current date and time
       const now = new Date();
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -96,6 +105,10 @@ export default function Home() {
         const itemDate = new Date(item.date);
         return itemDate >= startOfToday && itemDate < endOfToday;
       });
+
+      // Extract weekly data
+      const weeklyData = weeklyResult.daily.data;
+      setWeeklyData(weeklyData); // Set weekly data
 
       // Fetch astronomical data
       const astroResponse = await fetch(astroUrl, options);
@@ -127,10 +140,17 @@ export default function Home() {
       setError('An error occurred: ' + error.message);
       setWeather(null);
       setHourlyData([]); // Clear hourly data on error
+      setWeeklyData([]); // Clear weekly data on error
     }
   };
 
+  const handleDailyButtonPress = () => {
+    setViewMode('hourly');
+  };
 
+  const handleWeeklyButtonPress = () => {
+    setViewMode('weekly');
+  };
 
   return (
     <LinearGradient
@@ -155,11 +175,12 @@ export default function Home() {
         {data && bottomPosition === '-80%' && (
           <View style={styles.infoContainer}>
             <View style={{alignSelf:'center'}}>
-            <Text style={styles.cityText}>{data.name}</Text>
-            <View style={{flexDirection:'row'}}>
-            <Entypo name="location-pin" size={24} color="white" />
-            <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
-            </View></View>
+              <Text style={styles.cityText}>{data.name}</Text>
+              <View style={{flexDirection:'row'}}>
+                <Entypo name="location-pin" size={24} color="white" />
+                <Text style={{color:'white',alignSelf:'center'}}>Current Location</Text>
+              </View>
+            </View>
           </View>
         )}
         {weather && bottomPosition === '-80%' && (
@@ -174,7 +195,6 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'cloudy' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'clear' ? require('./../../assets/rain.png') : 
-
                          null}
                 style={styles.image}
               />
@@ -183,43 +203,64 @@ export default function Home() {
               </View>
             </View>
             <Text style={styles.summaryText}>{weather.summary}  -  H:{weather.humidity}%   L:{weather.feels_like}°</Text>
-            {/* <Text style={styles.sunText}>Sunrise: {weather.sunrise}</Text>
-<Text style={styles.sunText}>Sunset: {weather.sunset}</Text> */}
-
+            
             <View style={styles.buttonContainer}>
-              <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Daily</Text></View>
-              <View style={styles.buttonView}><Text style={styles.buttonTextCentered}>Weekly</Text></View>
+              <TouchableOpacity style={styles.buttonView} onPress={handleDailyButtonPress}>
+                <Text style={styles.buttonTextCentered}>Daily</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.buttonView} onPress={handleWeeklyButtonPress}>
+                <Text style={styles.buttonTextCentered}>Weekly</Text>
+              </TouchableOpacity>
             </View>
 
-       
-          <FlatList
-  data={hourlyData}
-  renderItem={({ item }) => (
-    <View style={styles.flatListItem}>
-      <Text style={styles.flatListItemText}>
-        {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', hour12: true })}</Text>
-        <Image source={require('./../../assets/cloudy.png')} style={{height:70,width:70,alignContent:'center'}}/>
-        <Text style={styles.flatListItemText1}> {item.temperature}°
-      </Text>
-    </View>
-  )}
-  keyExtractor={(item) => item.date}  // Ensure unique key for each item
-  horizontal
-  contentContainerStyle={styles.flatListContainer}
-/>
-
+            {viewMode === 'hourly' ? (
+              <FlatList
+                data={hourlyData}
+                renderItem={({ item }) => (
+                  <View style={styles.flatListItem}>
+                    <Text style={styles.flatListItemText}>
+                      {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', hour12: true })}
+                    </Text>
+                    <Image source={require('./../../assets/cloudy.png')} style={{height:70,width:70,alignContent:'center'}}/>
+                    <Text style={styles.flatListItemText1}> {item.temperature}°
+                    </Text>
+                  </View>
+                )}
+                keyExtractor={(item) => item.date}  // Ensure unique key for each item
+                horizontal
+                contentContainerStyle={styles.flatListContainer}
+              />
+            ) : (
+              <FlatList
+                data={weeklyData}
+                renderItem={({ item }) => (
+                  <View style={styles.flatListItem}>
+                   
+                    <Text style={styles.flatListItemText2}> {item.day}
+                    </Text>
+                    <Text style={styles.flatListItemText1}> {item.weather}
+                    </Text>
+                    <Text style={styles.flatListItemText1}> {item.temperature}° 
+                    </Text>
+                  </View>
+                )}
+                keyExtractor={(item) => item.time}  // Ensure unique key for each item
+                horizontal
+                contentContainerStyle={styles.flatListContainer}
+              />
+            )}
           </View>
         )}
         {bottomPosition === '-35%' && (
-         <View style={styles.infoContainer1}>
-          <View style={{alignSelf:'center'}}>
-         <Text style={styles.cityText}>{data.name}</Text>
-         <View style={{flexDirection:'row'}}>
-         <Entypo name="location-pin" size={24} color="white" />
-           <Text style={{color:'white'}}>Current Location</Text>
-         </View>
-         </View>
-         <View style={styles.weatherInfo}>
+          <View style={styles.infoContainer1}>
+            <View style={{alignSelf:'center'}}>
+              <Text style={styles.cityText}>{data.name}</Text>
+              <View style={{flexDirection:'row'}}>
+                <Entypo name="location-pin" size={24} color="white" />
+                <Text style={{color:'white'}}>Current Location</Text>
+              </View>
+            </View>
+            <View style={styles.weatherInfo}>
               <Image 
                 source={weather.summary.toLowerCase() === 'overcast' ? require('./../../assets/cloudy.png') : 
                          weather.summary.toLowerCase() === 'partly clear' ? require('./../../assets/sun.png') : 
@@ -229,8 +270,6 @@ export default function Home() {
                          weather.summary.toLowerCase() === 'possible rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'light rain' ? require('./../../assets/rain.png') : 
                          weather.summary.toLowerCase() === 'clear' ? require('./../../assets/rain.png') : 
-
-                       
                          null}
                 style={styles.image1}
               />
@@ -238,83 +277,80 @@ export default function Home() {
                 <Text style={styles.temperatureText1}>{weather.temperature}° </Text>
               </View>
             </View>
-       </View>
+          </View>
         )}
       </View>
       <View style={[styles.bottomContainer, { bottom: bottomPosition }]}>
-      <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
-        <Image
-          source={
-            bottomPosition === '-80%'
-              ? require('./../../assets/arrow.png')
-              : require('./../../assets/arrow-up.png')
-          }
-         // Adjust dimensions as needed
-        />
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.btn} onPress={handleButtonPress}>
+          <Image
+            source={
+              bottomPosition === '-80%'
+                ? require('./../../assets/arrow.png')
+                : require('./../../assets/arrow-up.png')
+            }
+            // Adjust dimensions as needed
+          />
+        </TouchableOpacity>
 
-  {/* Conditionally render the sunrise and sunset times */}
-  {weather?.sunrise && weather?.sunset && (
-    <View style={styles.sunrise}>
-      <Image source={require('./../../assets/sun-fog.png')}/>
-      <View style={{marginLeft:20,marginRight:20}}>      
-      <Text style={styles.sunText2}>Sunrise</Text>
-      <Text style={styles.sunText2}> {weather.sunrise}</Text>
+        {/* Conditionally render the sunrise and sunset times */}
+        {weather?.sunrise && weather?.sunset && (
+          <View style={styles.sunrise}>
+            <Image source={require('./../../assets/sun-fog.png')}/>
+            <View style={{marginLeft:20,marginRight:20}}>      
+              <Text style={styles.sunText2}>Sunrise</Text>
+              <Text style={styles.sunText2}> {weather.sunrise}</Text>
+            </View>
+            <View style={{marginLeft:20,marginRight:20}}>
+              <Text style={styles.sunText2}>Sunset</Text>
+              <Text style={styles.sunText2}>{weather.sunset}</Text>
+            </View>
+          </View>
+        )}
+
+        {weather?.sunrise && weather?.sunset && (
+          <View style={styles.sunrise2}>
+            <Text style={styles.summaryText}>Summary</Text>
+
+            <View style={styles.infoContainer}>
+              <View style={styles.infoItem}>
+                <FontAwesome5 name="temperature-high" size={30} color="white" />
+                <Text style={styles.sunText}>Temperature</Text>
+                <Text style={styles.sunText2}>{weather.temperature} °</Text>
+                <View style={styles.infoItem1}>
+                  <Feather name="sunrise" size={30} color="white" />
+                  <Text style={styles.sunText}>Sunrise</Text>
+                  <Text style={styles.sunText2}>{weather.sunrise}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Feather name="wind" size={30} color="white" />
+                <Text style={styles.sunText}>Wind</Text>
+                <Text style={styles.sunText2}>{weather.wind.speed}km/h</Text>
+                <View style={styles.infoItem1}>
+                  <MaterialCommunityIcons name="weather-sunset" size={30} color="white" />
+                  <Text style={styles.sunText}>Sunset</Text>
+                  <Text style={styles.sunText2}>{weather.sunset}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Entypo name="cloud" size={30} color="white" />    
+                <Text style={styles.sunText}>Cloud</Text>
+                <Text style={styles.sunText2}>{weather.cloud_cover}%</Text>
+                <View style={styles.infoItem1}>
+                  <FontAwesome5 name="moon" size={30} color="white" />
+                  <Text style={styles.sunText}>Moon</Text>
+                  <Text style={styles.sunText2}>{weather.moonPhase}°</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
-      <View style={{marginLeft:20,marginRight:20}}>
-      <Text style={styles.sunText2}>Sunset</Text>
-      <Text style={styles.sunText2}>{weather.sunset}</Text>
-      </View>
-    </View>
-  )}
-  
-  {weather?.sunrise && weather?.sunset && (
- <View style={styles.sunrise2}>
- <Text style={styles.summaryText}>Summary</Text>
-
- <View style={styles.infoContainer}>
-   <View style={styles.infoItem}>
-   <FontAwesome5 name="temperature-high" size={30} color="white" />
-     <Text style={styles.sunText}>Temperature</Text>
-     <Text style={styles.sunText2}>{weather.temperature} °</Text>
-     <View style={styles.infoItem1}>
-     <Feather name="sunrise" size={30} color="white" />
-     <Text style={styles.sunText}>Sunrise</Text>
-     <Text style={styles.sunText2}>{weather.sunrise}</Text>
-   </View>
-   </View>
-
-   <View style={styles.infoItem}>
-     <Feather name="wind" size={30} color="white" />
-     <Text style={styles.sunText}>Wind</Text>
-     <Text style={styles.sunText2}>{weather.wind.speed}km/h</Text>
-     <View style={styles.infoItem1}>
-     <MaterialCommunityIcons name="weather-sunset" size={30} color="white" />
-          <Text style={styles.sunText}>Sunset</Text>
-     <Text style={styles.sunText2}>{weather.sunset}</Text>
-   </View>
-   </View>
-
-   <View style={styles.infoItem}>
-<Entypo name="cloud" size={30} color="white" />    
- <Text style={styles.sunText}>Cloud</Text>
-     <Text style={styles.sunText2}>{weather.cloud_cover}%</Text>
-     <View style={styles.infoItem1}>
-     <FontAwesome5 name="moon" size={30} color="white" />
-     <Text style={styles.sunText}>Moon</Text>
-     <Text style={styles.sunText2}>{weather.moonPhase}°</Text>
-   </View>
-   </View>
- </View>
-
- 
-</View>
-   )}
-</View>
     </LinearGradient>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -522,6 +558,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft:20,
     marginTop:-10
+  },
+  flatListItemText2: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop:30
   },
   sunrise:{
     flexDirection:'row',
