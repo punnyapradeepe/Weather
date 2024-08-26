@@ -32,7 +32,7 @@ export default function Home() {
     const options = {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': '6c384e0cf9msh7e0fc4d27211a7cp16c71ejsn0fe2e39ae385',
+        'x-rapidapi-key': '94ba4ca418msha1a7755929306c1p144434jsn84da72b31',
         'x-rapidapi-host': 'ai-weather-by-meteosource.p.rapidapi.com',
       },
     };
